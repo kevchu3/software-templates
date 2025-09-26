@@ -1,8 +1,8 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: kevin-developer-experience-workshop
-  title: KEVIN - Workshop - Developer Experience
+  name: developer-experience-workshop
+  title: Workshop - Developer Experience
   description: |
     One-Time Use: This template automates the creation of a GitLab root repository from a predefined 
     skeleton and configures an ArgoCD application to automatically synchronize changes from the 
@@ -25,8 +25,6 @@ spec:
   type: workshop
   parameters:
     - title: Workshop Configuration
-      required:
-        - general.rolloutControllerVersion
       properties:
         general:
           type: object
@@ -43,10 +41,6 @@ spec:
               type: string
               default: workshop-repository
               description: Repository name used to initialize workshop
-            rolloutControllerVersion:
-              title: Rollout controller Helm chart version
-              type: string
-              description: See https://github.com/poc-examples/charts/blob/main/charts/rollout-controller/Chart.yaml for latest Helm chart version
 
         devspaces:
           type: object
@@ -188,7 +182,6 @@ spec:
               local: "apps.${{ each.value.domain }}"
               shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
             type: "${{ each.value.type }}"
-          rolloutControllerVersion: ${{ parameters.general.rolloutControllerVersion }}
           gitlabOwner: ${{ parameters.general.gitlabOwner }}
           devspaces:
             sku: ${{ parameters.devspaces.devspacesMachineType }}
