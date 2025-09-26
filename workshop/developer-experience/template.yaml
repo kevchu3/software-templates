@@ -25,6 +25,8 @@ spec:
   type: workshop
   parameters:
     - title: Workshop Configuration
+      required:
+        - general.rolloutControllerVersion
       properties:
         general:
           type: object
@@ -41,6 +43,10 @@ spec:
               type: string
               default: workshop-repository
               description: Repository name used to initialize workshop
+            rolloutControllerVersion:
+              title: Rollout controller Helm chart version
+              type: string
+              description: See https://github.com/poc-examples/charts/blob/main/charts/rollout-controller/Chart.yaml for latest Helm chart version
 
         devspaces:
           type: object
@@ -182,6 +188,7 @@ spec:
               local: "apps.${{ each.value.domain }}"
               shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
             type: "${{ each.value.type }}"
+          rolloutControllerVersion: ${{ parameters.general.rolloutControllerVersion }}
           gitlabOwner: ${{ parameters.general.gitlabOwner }}
           devspaces:
             sku: ${{ parameters.devspaces.devspacesMachineType }}
