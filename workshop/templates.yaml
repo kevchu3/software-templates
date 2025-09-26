@@ -8,3 +8,4 @@ spec:
   type: url
   targets:
     - ./developer-experience/template.yaml
+    - ./update-orchestrator/template.yaml
