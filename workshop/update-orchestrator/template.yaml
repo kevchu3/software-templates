@@ -19,8 +19,16 @@ spec:
   parameters:
     - title: Workshop Configuration
       required:
-        - general.properties.rolloutControllerVersion
+        - rolloutControllerVersion
       properties:
+        orchestratorVersion:
+          title: Orchestrator Helm chart version
+          type: string
+          description: See https://github.com/poc-examples/charts/blob/main/charts/orchestrator/Chart.yaml for latest version
+        rolloutControllerVersion:
+          title: Rollout controller Helm chart version
+          type: string
+          description: See https://github.com/poc-examples/charts/blob/main/charts/rollout-controller/Chart.yaml for latest version
         general:
           type: object
           title: General Settings
@@ -37,10 +45,6 @@ spec:
               default: workshop-repository
               description: Repository name used to initialize workshop
               ui:widget: hidden
-            rolloutControllerVersion:
-              title: Rollout controller Helm chart version
-              type: string
-              description: See https://github.com/poc-examples/charts/blob/main/charts/rollout-controller/Chart.yaml for latest Helm chart version
  
         devspaces:
           type: object
