@@ -118,17 +118,24 @@ spec:
 
 
     ###################################
-    ## Fetch Gitlab file
+    ## Fetch and Patch GitLab File
     ###################################
-    # - id: fetch-gitlab-file
-    #   name: Fetch a file from GitLab
-    #   action: fetch:template
-    #   input:
-    #     url: gitlab.com/${{ parameters.general.gitlabOwner }}/${{ parameters.general.gitlabRepository }}/-/blob/main/_init_/workshop/overlays/dev/patch-values.yaml
-    #     # url: https://gitlab.com/your-group/your-repo/-/blob/main/path/to/your/file.yaml # URL to the raw file
-    #     targetPath: "./_init_/workshop/overlays/dev/" # Where to place the fetched file in the workspace
-    #     values:
-    #       rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
+    - id: fetch-gitlab-file
+      name: Fetch a file from GitLab
+      action: fetch:template
+      input:
+        url: gitlab.com/${{ parameters.general.gitlabOwner }}/${{ parameters.general.gitlabRepository }}/-/blob/main/_init_/workshop/overlays/dev/patch-values.yaml
+        # url: https://gitlab.com/your-group/your-repo/-/blob/main/path/to/your/file.yaml # URL to the raw file
+        targetPath: "./_init_/workshop/overlays/dev/" # Where to place the fetched file in the workspace
+
+    - id: patch-version
+      name: Patch Version in Overlays
+      action: roadiehq:utils:fs:replace
+      input:
+        files: 'patch-values.yaml'
+        replacements:
+          - find: 'targetRevision:*'
+            replace: 'targetRevision: ${{ parameters.rolloutControllerVersion }}'
 
     ##########################
     ## Template the Repository
@@ -182,7 +189,7 @@ spec:
               local: "apps.${{ each.value.domain }}"
               shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
             type: "${{ each.value.type }}"
-          rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
+          #rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
           gitlabOwner: ${{ parameters.general.gitlabOwner }}
           devspaces:
             sku: ${{ parameters.devspaces.devspacesMachineType }}
