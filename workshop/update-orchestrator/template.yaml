@@ -44,7 +44,6 @@ spec:
               type: string
               default: workshop-repository
               description: Repository name used to initialize workshop
-              ui:widget: hidden
  
         devspaces:
           type: object
@@ -121,32 +120,15 @@ spec:
     ###################################
     ## Fetch Gitlab file
     ###################################
-    - id: fetch-gitlab-file
-      name: Fetch a file from GitLab
-      action: fetch:template
-      input:
-        url: https://gitlab.com/${{ parameters.general.gitlabOwner }}/${{ parameters.general.gitlabRepository }}/-/blob/main/_init_/workshop/overlays/dev/patch-values.yaml
-        # url: https://gitlab.com/your-group/your-repo/-/blob/main/path/to/your/file.yaml # URL to the raw file
-        targetPath: "./_init_/workshop/overlays/dev/" # Where to place the fetched file in the workspace
-        values:
-          rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
-
-    #################################
-    ## Create Empty Repository
-    #################################
-    # - id: publishEmptyRepo
-    #   name: "Create Empty Repository"
-    #   action: publish:gitlab
+    # - id: fetch-gitlab-file
+    #   name: Fetch a file from GitLab
+    #   action: fetch:template
     #   input:
-    #     description: |
-    #       Self-Service Repository
-    #     repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
-    #     defaultBranch: main
-    #     settings:
-    #       visibility: "internal"
-    #     branches:
-    #       - name: main
-    #         protect: true
+    #     url: gitlab.com/${{ parameters.general.gitlabOwner }}/${{ parameters.general.gitlabRepository }}/-/blob/main/_init_/workshop/overlays/dev/patch-values.yaml
+    #     # url: https://gitlab.com/your-group/your-repo/-/blob/main/path/to/your/file.yaml # URL to the raw file
+    #     targetPath: "./_init_/workshop/overlays/dev/" # Where to place the fetched file in the workspace
+    #     values:
+    #       rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
 
     ##########################
     ## Template the Repository
@@ -182,35 +164,35 @@ spec:
 
     ##########################
     ## Template the Overlays
-    ##########################
-    # - id: generateOverlays
-    #   name: Generate Overlays
-    #   each: ${{ steps['fetchArgoCDInstances'].output.entity.spec.instances }}
-    #   action: fetch:template
-    #   input:
-    #     url: "./skeleton/overlays/${{ each.value.name }}"
-    #     targetPath: "./_init_/workshop/overlays/${{ each.value.name }}"
-    #     copyWithoutTemplating:
-    #       - kustomization.yaml
-    #     values:
-    #       gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
-    #       gitlabBranch: main
-    #       cluster:
-    #         domains:
-    #           local: "apps.${{ each.value.domain }}"
-    #           shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
-    #         type: "${{ each.value.type }}"
-    #       rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
-    #       gitlabOwner: ${{ parameters.general.gitlabOwner }}
-    #       devspaces:
-    #         sku: ${{ parameters.devspaces.devspacesMachineType }}
-    #         enableCapacity: ${{ parameters.devspaces.enableDevspaces }}
-    #         count: ${{ parameters.devspaces.devspacesMachineCount }}
-    #       amq:
-    #         sku: ${{ parameters.kafka.kafkaMachineType }}
-    #         enableCapacity: ${{ parameters.kafka.enableKafka }}
-    #         count: ${{ parameters.kafka.kafkaMachineCount }}
-    #       gitlabRepository: ${{ parameters.general.gitlabRepository }}
+    #########################
+    - id: generateOverlays
+      name: Generate Overlays
+      each: ${{ steps['fetchArgoCDInstances'].output.entity.spec.instances }}
+      action: fetch:template
+      input:
+        url: "./skeleton/overlays/${{ each.value.name }}"
+        targetPath: "./_init_/workshop/overlays/${{ each.value.name }}"
+        copyWithoutTemplating:
+          - kustomization.yaml
+        values:
+          gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
+          gitlabBranch: main
+          cluster:
+            domains:
+              local: "apps.${{ each.value.domain }}"
+              shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
+            type: "${{ each.value.type }}"
+          rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
+          gitlabOwner: ${{ parameters.general.gitlabOwner }}
+          devspaces:
+            sku: ${{ parameters.devspaces.devspacesMachineType }}
+            enableCapacity: ${{ parameters.devspaces.enableDevspaces }}
+            count: ${{ parameters.devspaces.devspacesMachineCount }}
+          amq:
+            sku: ${{ parameters.kafka.kafkaMachineType }}
+            enableCapacity: ${{ parameters.kafka.enableKafka }}
+            count: ${{ parameters.kafka.kafkaMachineCount }}
+          gitlabRepository: ${{ parameters.general.gitlabRepository }}
 
     #################################
     ## Create Self-Service Repository
