@@ -209,8 +209,8 @@ spec:
           Self-Service Repository
         repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
         branchName: main
-        commitAction: create
-        commitMessage: "Publish repository skeleton"
+        commitAction: update
+        commitMessage: "Update overlays with new Helm chart version"
 
     #################################
     ## ArgoCD Resources Configuration
