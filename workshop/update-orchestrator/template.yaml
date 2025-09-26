@@ -19,7 +19,7 @@ spec:
   parameters:
     - title: Workshop Configuration
       required:
-        - rolloutControllerVersion
+        - general.properties.rolloutControllerVersion
       properties:
         general:
           type: object
