@@ -1,10 +1,10 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: kevin-update-orchestrator
-  title: KEVIN - Workshop - Update Orchestrator
+  name: workshop-update
+  title: Workshop - Update Version
   description: |
-    This template updates the Workshop orchestrator Helm chart version
+    This template updates the Helm chart version for the Workshop rollout controller
   tags:
     - gitlab
     - automation
@@ -21,14 +21,11 @@ spec:
       required:
         - rolloutControllerVersion
       properties:
-        orchestratorVersion:
-          title: Orchestrator Helm chart version
-          type: string
-          description: See https://github.com/poc-examples/charts/blob/main/charts/orchestrator/Chart.yaml for latest version
         rolloutControllerVersion:
           title: Rollout controller Helm chart version
           type: string
-          description: See https://github.com/poc-examples/charts/blob/main/charts/rollout-controller/Chart.yaml for latest version
+          default: 0.6.109
+          description: See https://github.com/poc-examples/charts/blob/main/charts/rollout-controller/Chart.yaml for latest version i.e. 0.6.109
         general:
           type: object
           title: General Settings
@@ -44,7 +41,7 @@ spec:
               type: string
               default: workshop-repository
               description: Repository name used to initialize workshop
- 
+
         devspaces:
           type: object
           title: DevSpaces Dedicated Capacity
@@ -116,59 +113,6 @@ spec:
       input:
         entityRef: resource:default/argocd-instances
 
-
-    ###################################
-    ## Fetch and Patch GitLab File
-    ###################################
-    - id: fetch-gitlab-file
-      name: Fetch a file from GitLab
-      action: fetch:template
-      input:
-        url: gitlab.com/${{ parameters.general.gitlabOwner }}/${{ parameters.general.gitlabRepository }}/-/blob/main/_init_/workshop/overlays/dev/patch-values.yaml
-        # url: https://gitlab.com/your-group/your-repo/-/blob/main/path/to/your/file.yaml # URL to the raw file
-        targetPath: "./_init_/workshop/overlays/dev/" # Where to place the fetched file in the workspace
-
-    - id: patch-version
-      name: Patch Version in Overlays
-      action: roadiehq:utils:fs:replace
-      input:
-        files: 'patch-values.yaml'
-        replacements:
-          - find: 'targetRevision:*'
-            replace: 'targetRevision: ${{ parameters.rolloutControllerVersion }}'
-
-    ##########################
-    ## Template the Repository
-    ##########################
-    # - id: pullRepositorySkeleton
-    #   name: "Pull Self-Service Skeleton"
-    #   action: fetch:template
-    #   input:
-    #     url: './skeleton/repository'
-    #     copyWithoutTemplating:
-    #       - README.md
-    #       - LICENSE
-    #       - backstage
-    #       - applications
-    #     values:
-    #       path: "projects"
-    #       projectName: "default"
-    #       owner: "group:default/cluster-admins"
-    #       gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
-    #       gitlabOwner: ${{ parameters.general.gitlabOwner }}
-    #       gitlabRepository: ${{ parameters.general.gitlabRepository }}
-    #       gitlabBranch: main
-    #       devspaces:
-    #         domain: ${{ steps['fetchArgoCDInstances'].output.entity.spec.devspaces.domain }}
-    #       cluster:
-    #         domains:
-    #           shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
-    #       settings:
-    #         amq:
-    #           capacityEnabled: ${{ parameters.kafka.enableKafka }}
-    #         devspaces:
-    #           capacityEnabled: ${{ parameters.devspaces.enableDevspaces }}
-
     ##########################
     ## Template the Overlays
     #########################
@@ -179,8 +123,6 @@ spec:
       input:
         url: "./skeleton/overlays/${{ each.value.name }}"
         targetPath: "./_init_/workshop/overlays/${{ each.value.name }}"
-        copyWithoutTemplating:
-          - kustomization.yaml
         values:
           gitlabRemoteUrl: ${{ steps['publishEmptyRepo'].output.remoteUrl }}
           gitlabBranch: main
@@ -189,7 +131,7 @@ spec:
               local: "apps.${{ each.value.domain }}"
               shared: ${{ steps['fetchArgoCDInstances'].output.entity.spec.services.domain }}
             type: "${{ each.value.type }}"
-          #rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
+          rolloutControllerVersion: ${{ parameters.rolloutControllerVersion }}
           gitlabOwner: ${{ parameters.general.gitlabOwner }}
           devspaces:
             sku: ${{ parameters.devspaces.devspacesMachineType }}
@@ -212,32 +154,8 @@ spec:
           Self-Service Repository
         repoUrl: gitlab.com?owner=${{ parameters.general.gitlabOwner }}&repo=${{ parameters.general.gitlabRepository }}
         branchName: main
-        commitAction: update
+        commitAction: update  # replaces the existing files
         commitMessage: "Update overlays with new Helm chart version"
-
-    #################################
-    ## ArgoCD Resources Configuration
-    #################################
-    # - id: createArgocdResources
-    #   name: "Create ArgoCD Resources"
-    #   action: argocd:create-resources
-    #   each: ${{ steps['fetchArgoCDInstances'].output.entity.spec.instances }}
-    #   input:
-    #     appName: "workshop-orchestrator"
-    #     argoInstance: ${{ each.value.name }}
-    #     namespace: "openshift-gitops"
-    #     repoUrl: "${{ steps['publishEmptyRepo'].output.remoteUrl }}.git"
-    #     path: "_init_/workshop/overlays/${{ each.value.name }}"
-
-    ########################
-    ## Register Catalog Info
-    ########################
-    # - id: registerCatalog
-    #   name: "Register Catalog Info"
-    #   action: catalog:register
-    #   input:
-    #     repoContentsUrl: ${{ steps["publishEmptyRepo"].output.repoContentsUrl }}
-    #     catalogInfoPath: /catalog-info.yaml
 
   output:
     links:
