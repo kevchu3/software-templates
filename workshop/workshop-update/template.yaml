@@ -147,7 +147,7 @@ spec:
     ## Create Self-Service Repository
     #################################
     - id: publish
-      name: "Create Self-Service Repository"
+      name: "Update Self-Service Repository"
       action: gitlab:repo:push
       input:
         description: |
